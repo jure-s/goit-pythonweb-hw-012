@@ -1,0 +1,26 @@
+# ⛔ Ігноруємо середовище virtualenv
+venv/
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+
+# ⛔ Лог-файли та кеші
+logs/
+*.log
+
+# ⛔ Файли конфігурації середовища
+.env
+
+# ⛔ Бази даних SQLite (якщо використовуватимеш локально)
+*.sqlite3
+*.db
+
+# ⛔ Docker-файли
+docker-compose.override.yml
+
+# ⛔ IDE файли
+.vscode/
+.idea/
+*.iml
+.DS_Store
