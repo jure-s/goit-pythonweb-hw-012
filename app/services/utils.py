@@ -3,18 +3,21 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
 from app.database.models import Contact
 
-# 🔎 Функція пошуку контактів за ім'ям, прізвищем або email
-def search_contacts(db: Session, name: str = None, email: str = None):
+# 🔎 Функція пошуку контактів за ім'ям, прізвищем або email з урахуванням user_id
+def search_contacts(db: Session, name: str = None, email: str = None, user_id: int = None):
     query = db.query(Contact)
-    
+
+    if user_id is not None:
+        query = query.filter(Contact.user_id == user_id)
+
     if name:
         query = query.filter(
             (Contact.first_name.ilike(f"%{name}%")) | (Contact.last_name.ilike(f"%{name}%"))
         )
-    
+
     if email:
-        query = query.filter(Contact.email == email)
-    
+        query = query.filter(Contact.email.ilike(f"%{email}%"))
+
     return query.all()
 
 # 🎉 Фільтр: контакти з днями народження у найближчі 7 днів (ІГНОРУЄ РІК)
