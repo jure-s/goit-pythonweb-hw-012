@@ -82,3 +82,21 @@ def create_verification_token(email: str, expires_delta: timedelta = timedelta(h
     expire = datetime.utcnow() + expires_delta
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+# 🔐 Генерація токена для скидання пароля
+def create_reset_token(email: str, expires_delta: timedelta = timedelta(hours=1)) -> str:
+    to_encode = {"sub": email, "scope": "reset_password"}
+    expire = datetime.utcnow() + expires_delta
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+# ✅ Перевірка токена та витяг email
+def verify_reset_token(token: str) -> Optional[str]:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("scope") != "reset_password":
+            return None
+        return payload.get("sub")
+    except JWTError:
+        return None
+
