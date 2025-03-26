@@ -28,7 +28,7 @@ class UserResponse(BaseModel):
     updated_at: datetime
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class UserLogin(BaseModel):
     """Схема для логіну користувача"""
@@ -60,4 +60,4 @@ class ContactResponse(ContactCreate):
     user_id: int
 
     class Config:
-        from_attributes = True
+        orm_mode = True

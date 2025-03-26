@@ -12,8 +12,17 @@ load_dotenv()
 print(f"DATABASE_URL: {os.getenv('DATABASE_URL')}")
 print(f"SECRET_KEY: {os.getenv('SECRET_KEY')}")
 
+# Функція для отримання URL бази даних
+def get_database_url():
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        print("ERROR: DATABASE_URL is not set.")
+    return database_url
+
 # Отримуємо URL бази даних
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+SQLALCHEMY_DATABASE_URL = get_database_url()
+
+# Отримуємо URL Redis
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 
 # Якщо змінна DATABASE_URL не була знайдена, вивести повідомлення

@@ -104,6 +104,16 @@ def delete_contact(db: Session, contact_id: int, user_id: int):
     return db_contact
 
 
+# 🔹 Функції для видалення користувачів (User)
+def delete_user(db: Session, user_id: int):
+    """Видалення користувача"""
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if db_user:
+        db.delete(db_user)
+        db.commit()
+    return db_user
+
+
 # 🔹 Перевірка пароля
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Перевіряє, чи введений пароль відповідає збереженому хешу"""
