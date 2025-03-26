@@ -65,7 +65,7 @@ def update_user_password(db: Session, email: str, new_password: str) -> Optional
 def create_contact(db: Session, contact: ContactCreate, user_id: int):
     """Створення нового контакту"""
     db_contact = Contact(
-        **contact.dict(),
+        **contact.model_dump(),
         user_id=user_id
     )
     db.add(db_contact)
@@ -88,7 +88,7 @@ def update_contact(db: Session, contact_id: int, contact: ContactUpdate, user_id
     """Оновлення контакту"""
     db_contact = db.query(Contact).filter(Contact.id == contact_id, Contact.user_id == user_id).first()
     if db_contact:
-        for key, value in contact.dict(exclude_unset=True).items():
+        for key, value in contact.model_dump(exclude_unset=True).items():
             setattr(db_contact, key, value)
         db.commit()
         db.refresh(db_contact)

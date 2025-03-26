@@ -1,20 +1,24 @@
 import sys
 import os
-import asyncio
+from contextlib import asynccontextmanager
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
-from fastapi_limiter.depends import RateLimiter
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from app.config import init_limiter  # Ініціалізація Rate Limiter
-from app.routes import contacts, users, auth  # Додаємо auth
+from app.routes import contacts, users, auth
 
-app = FastAPI(title="Contacts API with Authentication")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_limiter()
+    yield
+
+app = FastAPI(title="Contacts API with Authentication", lifespan=lifespan)
 
 # Налаштування OAuth2
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -50,9 +54,3 @@ def secure_endpoint(token: str = Depends(oauth2_scheme)):
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     return FileResponse("app/static/favicon.svg")
-
-# 🔹 Ініціалізація Rate Limiter при старті сервера
-@app.on_event("startup")
-async def startup():
-    await init_limiter()
-

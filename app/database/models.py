@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Date, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from app.config import Base
 
 
@@ -15,10 +15,10 @@ class User(Base):
     email = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
     is_verified = Column(Boolean, default=False)
-    confirmed = Column(Boolean, default=False)  # Додано поле для підтвердження email
+    confirmed = Column(Boolean, default=False)
     avatar_url = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     contacts = relationship("Contact", back_populates="user")
 
