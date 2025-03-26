@@ -1,6 +1,7 @@
 import uuid
 from app.services.auth import create_reset_token  # Для тесту з реальним токеном
 
+
 def test_signup_user(test_client):
     unique_username = f"testuser_{uuid.uuid4().hex[:8]}"
     unique_email = f"{unique_username}@example.com"
@@ -37,12 +38,14 @@ def test_login_user(test_client):
 
 
 def test_reset_password_flow(test_client):
-    unique_email = f"user_{uuid.uuid4().hex[:8]}@example.com"
+    unique_id = uuid.uuid4().hex[:8]
+    unique_email = f"user_{unique_id}@example.com"
+    unique_username = f"resetuser_{unique_id}"
     password = "initialPassword123"
 
     # Крок 1: Реєстрація
     signup_response = test_client.post("/users/signup/", json={
-        "username": "resetuser",
+        "username": unique_username,
         "email": unique_email,
         "password": password
     })
@@ -52,10 +55,10 @@ def test_reset_password_flow(test_client):
     reset_request = test_client.post("/users/reset_password_request/", params={"email": unique_email})
     assert reset_request.status_code == 200
 
-    # ⚠️ Генеруємо токен вручну (як у сервісі)
+    # Крок 3: Генерація токена вручну
     token = create_reset_token(unique_email)
 
-    # Крок 3: Скидання пароля
+    # Крок 4: Скидання пароля
     new_password = "newSecurePassword123"
     reset_response = test_client.post("/users/reset_password/", params={
         "token": token,
@@ -64,7 +67,7 @@ def test_reset_password_flow(test_client):
     assert reset_response.status_code == 200
     assert "Password has been reset" in reset_response.json()["message"]
 
-    # Крок 4: Логін з новим паролем
+    # Крок 5: Логін з новим паролем
     login_response = test_client.post("/users/login", data={
         "username": unique_email,
         "password": new_password
