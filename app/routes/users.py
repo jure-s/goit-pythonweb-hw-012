@@ -18,6 +18,10 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 # 🔹 Функція для отримання сесії БД
 def get_db():
+    """
+    Функція для отримання сесії з бази даних.
+    Вона використовується для роботи з БД у маршрутах API.
+    """
     db = SessionLocal()
     try:
         yield db
@@ -27,7 +31,14 @@ def get_db():
 # 🔹 Реєстрація нового користувача
 @router.post("/signup", response_model=schemas.UserResponse, status_code=201)
 def signup(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
-    """Реєстрація нового користувача"""
+    """
+    Реєстрація нового користувача. Перевіряє наявність користувача з таким самим email.
+    Якщо такий вже є, повертає статус 409 (конфлікт).
+    
+    :param user_data: Дані для реєстрації користувача.
+    :param db: Сесія БД для взаємодії з базою даних.
+    :return: Дані про зареєстрованого користувача.
+    """
     existing_user = crud.get_user_by_email(db, user_data.email)
     if existing_user:
         raise HTTPException(status_code=409, detail="Email already registered")
@@ -38,7 +49,14 @@ def signup(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
 # 🔹 Авторизація користувача (логін)
 @router.post("/login")
 def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    """Авторизація користувача"""
+    """
+    Авторизація користувача за email та паролем.
+    Якщо пароль або email невірні, повертається статус 401 (неавторизовано).
+    
+    :param form_data: Дані для логіну (email та пароль).
+    :param db: Сесія БД для взаємодії з базою даних.
+    :return: Токен доступу (access_token) користувача.
+    """
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -50,14 +68,25 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
     return {"access_token": access_token, "token_type": "bearer"}
 
 # 🔹 Тестовий маршрут
-@router.get("/")
-def get_users():
+@router.get("/test")
+def test_route():
+    """
+    Тестовий маршрут для перевірки доступності API.
+    :return: Підтвердження, що API працює.
+    """
     return {"message": "Users API is working!"}
 
 # 🔐 Запит на скидання пароля
 @router.post("/reset_password_request/")
 def request_password_reset(email: str, db: Session = Depends(get_db)):
-    """Генерує посилання для скидання пароля та логує його"""
+    """
+    Генерує посилання для скидання пароля та логує його.
+    Якщо користувач не знайдений, повертається статус 404.
+    
+    :param email: Email користувача, для якого генерується посилання для скидання пароля.
+    :param db: Сесія БД для взаємодії з базою даних.
+    :return: Повідомлення про успішну генерацію посилання для скидання пароля.
+    """
     user = crud.get_user_by_email(db, email)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -71,7 +100,15 @@ def request_password_reset(email: str, db: Session = Depends(get_db)):
 # 🔐 Скидання пароля через токен
 @router.post("/reset_password/")
 def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
-    """Скидання пароля користувача через токен"""
+    """
+    Скидання пароля користувача через токен.
+    Якщо токен недійсний або прострочений, повертається статус 400.
+    
+    :param token: Токен для скидання пароля.
+    :param new_password: Новий пароль користувача.
+    :param db: Сесія БД для взаємодії з базою даних.
+    :return: Повідомлення про успішне скидання пароля.
+    """
     email = verify_reset_token(token)
     if not email:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")

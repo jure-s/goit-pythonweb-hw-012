@@ -30,6 +30,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 # Функція для отримання сесії бази даних
 def get_db():
+    """
+    Генератор сесії для роботи з базою даних.
+
+    :return: Сесія бази даних.
+    """
     db = SessionLocal()
     try:
         yield db
@@ -39,6 +44,14 @@ def get_db():
 
 # 🔹 Аутентифікація користувача за email та паролем
 def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
+    """
+    Аутентифікація користувача за email та паролем.
+
+    :param db: Сесія бази даних.
+    :param email: Email користувача.
+    :param password: Пароль користувача.
+    :return: Користувач або None, якщо аутентифікація не вдалася.
+    """
     user = crud.get_user_by_email(db, email)
     if not user:
         return None
@@ -49,6 +62,13 @@ def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
 
 # 🔹 Створення JWT токена
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """
+    Створення JWT токена доступу.
+
+    :param data: Дані, які повинні бути включені в токен.
+    :param expires_delta: Час до завершення терміну дії токена.
+    :return: Створений токен доступу.
+    """
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
@@ -57,6 +77,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 # 🔹 Отримання поточного користувача за токеном
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    """
+    Отримання поточного користувача за JWT токеном.
+
+    :param token: Токен доступу.
+    :param db: Сесія бази даних.
+    :return: Поточний користувач.
+    :raises HTTPException: Якщо токен некоректний або користувач не знайдений.
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -78,6 +106,13 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
 # 🔹 Створення токена для підтвердження email
 def create_verification_token(email: str, expires_delta: timedelta = timedelta(hours=1)) -> str:
+    """
+    Створення токена для підтвердження email.
+
+    :param email: Email користувача для підтвердження.
+    :param expires_delta: Час до завершення терміну дії токена.
+    :return: Створений токен для підтвердження.
+    """
     to_encode = {"sub": email}
     expire = datetime.now(timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
@@ -86,6 +121,13 @@ def create_verification_token(email: str, expires_delta: timedelta = timedelta(h
 
 # 🔐 Генерація токена для скидання пароля
 def create_reset_token(email: str, expires_delta: timedelta = timedelta(hours=1)) -> str:
+    """
+    Генерація токена для скидання пароля.
+
+    :param email: Email користувача для скидання пароля.
+    :param expires_delta: Час до завершення терміну дії токена.
+    :return: Створений токен для скидання пароля.
+    """
     to_encode = {"sub": email, "scope": "reset_password"}
     expire = datetime.now(timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
@@ -94,6 +136,12 @@ def create_reset_token(email: str, expires_delta: timedelta = timedelta(hours=1)
 
 # ✅ Перевірка токена та витяг email
 def verify_reset_token(token: str) -> Optional[str]:
+    """
+    Перевірка токена для скидання пароля та витягнення email користувача.
+
+    :param token: Токен для скидання пароля.
+    :return: Email користувача або None, якщо токен некоректний.
+    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload.get("scope") != "reset_password":
