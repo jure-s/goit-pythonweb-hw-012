@@ -20,10 +20,18 @@ services:
     restart: always
     depends_on:
       - db
+      - redis
     ports:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://postgres:mysecretpassword@db:5432/contacts_db
+      REDIS_URL: redis://redis:6379  # Додаємо URL для підключення до Redis
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
 
 volumes:
   pgdata:
