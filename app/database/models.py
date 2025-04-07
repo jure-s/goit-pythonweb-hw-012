@@ -17,6 +17,7 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     confirmed = Column(Boolean, default=False)
     avatar_url = Column(String, nullable=True)
+    role = Column(String, default="user")  # 🆕 Додано поле ролі
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 

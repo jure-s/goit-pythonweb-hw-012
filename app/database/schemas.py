@@ -16,6 +16,7 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
+    role: Optional[str] = "user"  # додано поле role зі значенням за замовчуванням
 
 class UserResponse(BaseModel):
     """Схема відповіді для користувача"""
@@ -26,6 +27,7 @@ class UserResponse(BaseModel):
     avatar_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    role: Optional[str] = "user"  # додано поле role
 
     class Config:
         from_attributes = True  # Заміна orm_mode на from_attributes

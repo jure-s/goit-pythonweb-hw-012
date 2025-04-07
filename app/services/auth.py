@@ -149,3 +149,19 @@ def verify_reset_token(token: str) -> Optional[str]:
         return payload.get("sub")
     except JWTError:
         return None
+
+# 🔐 Перевірка адміністративної ролі
+def get_current_admin_user(current_user: User = Depends(get_current_user)) -> User:
+    """
+    Отримати поточного користувача і перевірити, чи він адміністратор.
+
+    :param current_user: Користувач, отриманий через токен.
+    :raises HTTPException: Якщо роль не admin.
+    :return: Користувач з роллю admin.
+    """
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to perform this action",
+        )
+    return current_user

@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
+import shutil
+import os
 
 from app.config import SessionLocal
 import app.database.schemas as schemas
@@ -10,7 +12,8 @@ from app.services.auth import (
     authenticate_user,
     create_access_token,
     create_reset_token,
-    verify_reset_token
+    verify_reset_token,
+    get_current_admin_user
 )
 from loguru import logger
 
@@ -118,3 +121,29 @@ def reset_password(token: str, new_password: str, db: Session = Depends(get_db))
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     return {"message": "Password has been reset successfully."}
+
+# 🔒 Оновлення аватара (тільки для адмінів)
+@router.post("/avatar", response_model=schemas.UserResponse)
+def update_user_avatar(
+    file: UploadFile = File(...),
+    current_user: schemas.UserResponse = Depends(get_current_admin_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Оновлення аватара користувача. Дозволено лише адміністраторам.
+    
+    :param file: Завантажений файл (аватар).
+    :param current_user: Поточний авторизований користувач.
+    :param db: Сесія БД.
+    :return: Оновлений користувач.
+    """
+    avatar_dir = "static/avatars"
+    os.makedirs(avatar_dir, exist_ok=True)
+
+    avatar_path = os.path.join(avatar_dir, file.filename)
+    with open(avatar_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    user = crud.get_user_by_email(db, current_user.email)
+    updated_user = crud.update_avatar(db, user, avatar_path)
+    return updated_user
