@@ -2,24 +2,29 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime, date
 
-# Схема для токена
+
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
 
-class TokenData(BaseModel):
-    email: str | None = None
 
-# Схеми для користувачів (User)
+class TokenData(BaseModel):
+    email: Optional[str] = None
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+
 class UserCreate(BaseModel):
-    """Схема для створення користувача"""
     username: str
     email: EmailStr
     password: str
-    role: Optional[str] = "user"  # додано поле role зі значенням за замовчуванням
+    role: Optional[str] = "user"
+
 
 class UserResponse(BaseModel):
-    """Схема відповіді для користувача"""
     id: int
     username: str
     email: EmailStr
@@ -27,19 +32,18 @@ class UserResponse(BaseModel):
     avatar_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    role: Optional[str] = "user"  # додано поле role
+    role: Optional[str] = "user"
 
     class Config:
-        from_attributes = True  # Заміна orm_mode на from_attributes
+        from_attributes = True
+
 
 class UserLogin(BaseModel):
-    """Схема для логіну користувача"""
     email: EmailStr
     password: str
 
-# Схеми для контактів (Contact)
+
 class ContactCreate(BaseModel):
-    """Схема для створення контакту"""
     first_name: str
     last_name: str
     email: EmailStr
@@ -47,8 +51,8 @@ class ContactCreate(BaseModel):
     birthday: Optional[date] = None
     extra_info: Optional[str] = None
 
+
 class ContactUpdate(BaseModel):
-    """Схема для оновлення контакту"""
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -56,10 +60,10 @@ class ContactUpdate(BaseModel):
     birthday: Optional[date] = None
     extra_info: Optional[str] = None
 
+
 class ContactResponse(ContactCreate):
-    """Схема відповіді для контакту"""
     id: int
     user_id: int
 
     class Config:
-        from_attributes = True  # Заміна orm_mode на from_attributes
+        from_attributes = True
